@@ -1,0 +1,190 @@
+version: '3.7'
+
+networks:
+  development:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+
+services:
+  php-fpm:
+    build: ./php-fpm/php80
+    container_name: php-fpm
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - type: bind
+        source: ${CODE_PATH}
+        target: /var/www
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/php.ini
+        target: /usr/local/etc/php/php.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/xdebug.ini
+        target: /usr/local/etc/php/conf.d/xdebug.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/php-fpm.conf
+        target: /usr/local/etc/php-fpm.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/www.conf
+        target: /usr/local/etc/php-fpm.d/www.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/zz-docker.conf
+        target: /usr/local/etc/php-fpm.d/zz-docker.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php80/logs
+        target: /usr/local/var/log
+        consistency: cached
+    networks:
+      - development
+    restart: always
+
+  php-fpm-74:
+    build: ./php-fpm/php74
+    container_name: php-fpm
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - type: bind
+        source: ${CODE_PATH}
+        target: /var/www
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/php.ini
+        target: /usr/local/etc/php/php.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/xdebug.ini
+        target: /usr/local/etc/php/conf.d/xdebug.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/php-fpm.conf
+        target: /usr/local/etc/php-fpm.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/www.conf
+        target: /usr/local/etc/php-fpm.d/www.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/zz-docker.conf
+        target: /usr/local/etc/php-fpm.d/zz-docker.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php74/logs
+        target: /usr/local/var/log
+        consistency: cached
+    networks:
+      - development
+    restart: always
+
+  php-fpm-56:
+    build: ./php-fpm/php56
+    container_name: php-fpm-56
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - type: bind
+        source: ${CODE_PATH}
+        target: /var/www
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/php.ini
+        target: /usr/local/etc/php/php.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/xdebug.ini
+        target: /usr/local/etc/php/conf.d/xdebug.ini
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/php-fpm.conf
+        target: /usr/local/etc/php-fpm.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/www.conf
+        target: /usr/local/etc/php-fpm.d/www.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/zz-docker.conf
+        target: /usr/local/etc/php-fpm.d/zz-docker.conf
+        consistency: delegated
+      - type: bind
+        source: ./php-fpm/php56/logs
+        target: /usr/local/var/log
+        consistency: cached
+    networks:
+      - development
+    restart: always
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - "443:443"
+      - "80:80"
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - type: bind
+        source: ${CODE_PATH}
+        target: /var/www
+        consistency: delegated
+      - type: bind
+        source: ./nginx/nginx.conf
+        target: /etc/nginx/nginx.conf
+        consistency: delegated
+      - type: bind
+        source: ./nginx/conf.d
+        target: /etc/nginx/conf.d
+        consistency: delegated
+      - type: bind
+        source: ./nginx/logs
+        target: /var/log/nginx
+        consistency: cached
+    depends_on:
+      - php-fpm
+    networks:
+      - development
+    restart: always
+
+  mysql:
+    build: ./mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    volumes:
+      - type: bind
+        source: ./mysql/data
+        target: /var/lib/mysql
+        consistency: cached
+    networks:
+      - development
+    restart: always
+
+  redis:
+    build: ./redis
+    container_name: redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    volumes:
+      - type: bind
+        source: ./redis/redis.conf
+        target: /usr/local/etc/redis/redis.conf
+        consistency: delegated
+      - type: bind
+        source: ./redis/logs
+        target: /var/log/redis
+        consistency: cached
+    networks:
+      - development
+    restart: always
